@@ -1,0 +1,50 @@
+version: '3.8'
+services:
+  web:
+    container_name: go_mux_crud_web_container
+    restart: always
+    networks:
+      - new
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/code
+    ports:
+      - "9000:9000"
+    depends_on:
+      - db
+      - db_migrate
+
+  db_migrate:
+    container_name: go_mux_crud_db_migrations
+    restart: always
+    image: migrate/migrate
+    networks:
+      - new
+    env_file:
+      - .env
+    volumes:
+      - ./db/migrations:/migrations
+    entrypoint: "migrate -database postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}?sslmode=disable -path /migrations"
+    command: up
+    depends_on:
+      - db
+
+  db:
+    container_name: go_mux_crud_db_container
+    restart: always
+    image: postgres
+    networks:
+      new:
+        aliases:
+          - database
+    volumes:
+      - ./db/.dbdata:/var/lib/postgresql/data
+    env_file:
+      - .env
+    ports:
+      - "54322:5432"
+
+networks:
+  new:
