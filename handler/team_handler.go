@@ -54,8 +54,34 @@ func GetAllTeam(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     w.Header().Set("Access-Control-Allow-Origin", "*")
 
+    var PageNum, PageSize string
+    var intPageNum, intPageSize int
+    var err error
+
+    // Pagination
+    PageNum = r.URL.Query().Get("PageNum")
+    PageSize = r.URL.Query().Get("PageSize")
+    intPageNum = 0
+    intPageSize = 0
+
+    if PageNum != "" {
+        intPageNum, err = strconv.Atoi(PageNum)
+        if err != nil {
+           log.Fatalf("Unable to get all teams. %v", err)
+           return
+        }
+    }
+
+    if PageSize != "" {
+        intPageSize, err = strconv.Atoi(PageSize)
+        if err != nil {
+            log.Fatalf("Unable to get all teams. %v", err)
+            return
+        }
+    }
+
     // get all the users in the db
-    teams, err := db.GetAllTeams()
+    teams, err := db.GetAllTeams(intPageNum, intPageSize)
     if err != nil {
         log.Fatalf("Unable to get all teams. %v", err)
     }
@@ -171,15 +197,43 @@ func GetTeamsForMerchant(w http.ResponseWriter, r *http.Request){
     w.Header().Set("Content-Type", "application/json")
     w.Header().Set("Access-Control-Allow-Origin", "*")
 
+    var PageNum, PageSize string
+    var intPageNum, intPageSize int
+    var err error
+    var merchantId int
+
     // get the merchantID from the request params, key is "id"
     params := mux.Vars(r)
     // convert the merchant_id in string to int
-    merchantId, err := strconv.Atoi(params["merchant_id"])
+    merchantId, err = strconv.Atoi(params["merchant_id"])
     if err != nil {
         log.Fatalf("Unable to convert the string into int.  %v", err)
     }
+
+    // Pagination
+    PageNum = r.URL.Query().Get("PageNum")
+    PageSize = r.URL.Query().Get("PageSize")
+    intPageNum = 0
+    intPageSize = 0
+
+    if PageNum != "" {
+        intPageNum, err = strconv.Atoi(PageNum)
+        if err != nil {
+           log.Fatalf("Unable to get all teams. %v", err)
+           return
+        }
+    }
+
+    if PageSize != "" {
+        intPageSize, err = strconv.Atoi(PageSize)
+        if err != nil {
+            log.Fatalf("Unable to get all teams. %v", err)
+            return
+        }
+    }
+
     // get all the teams related to merchant from the db
-    teams, err := db.GetMerchantTeamMembers(merchantId)
+    teams, err := db.GetMerchantTeamMembers(merchantId, intPageNum, intPageSize)
     if err != nil {
         log.Fatalf("Unable to get all teams. %v", err)
     }

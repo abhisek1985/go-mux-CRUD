@@ -9,14 +9,21 @@ import (
 
 
 // get all merchant from the DB
-func GetAllMerchants() ([]models.Merchant, error) {
+func GetAllMerchants(intPageNum int, intPageSize int) ([]models.Merchant, error) {
     // create the postgres db connection
     db := createDBConnection()
     // close the db connection
     defer db.Close()
     var merchants []models.Merchant
+
     // create the select sql query
     sqlStatement := `SELECT * FROM merchant ORDER BY ID DESC`
+
+    if intPageNum > 0 && intPageSize > 0{
+        paginatedQuery := models.PaginateQuery(intPageNum, intPageSize, sqlStatement)
+        sqlStatement = paginatedQuery
+    }
+
     // execute the sql statement
     rows, err := db.Query(sqlStatement)
     if err != nil {

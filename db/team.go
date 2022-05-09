@@ -34,16 +34,22 @@ func InsertTeam(team models.Team) string {
 
 
 // get all teams from the DB
-func GetAllTeams() ([]models.Team, error) {
+func GetAllTeams(intPageNum int, intPageSize int) ([]models.Team, error) {
     // create the postgres db connection
     db := createDBConnection()
     // close the db connection
     defer db.Close()
     var teams []models.Team
-    // create the select sql query
-    sqlStatement := `SELECT * FROM team ORDER BY ID DESC`
-    // execute the sql statement
+    var sqlStatement string
+
+    sqlStatement = `SELECT * FROM team ORDER BY ID DESC`
+    if intPageNum > 0 && intPageSize > 0{
+        paginatedQuery := models.PaginateQuery(intPageNum, intPageSize, sqlStatement)
+        sqlStatement = paginatedQuery
+    }
+
     rows, err := db.Query(sqlStatement)
+
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
     }
@@ -140,14 +146,20 @@ func DeleteTeam(teamId int) int {
 
 
 // Get Teams related to given merchantId
-func GetMerchantTeamMembers(merchantId int) ([]models.Team, error){
+func GetMerchantTeamMembers(merchantId int, intPageNum int, intPageSize int) ([]models.Team, error){
     // create the postgres db connection
     db := createDBConnection()
     // close the db connection
     defer db.Close()
     var teams []models.Team
     // create the delete sql query
-    sqlStatement := `SELECT * FROM team WHERE merchant_id = $1;`
+    sqlStatement := `SELECT * FROM team WHERE merchant_id = $1`
+
+    if intPageNum > 0 && intPageSize > 0{
+        paginatedQuery := models.PaginateQuery(intPageNum, intPageSize, sqlStatement)
+        sqlStatement = paginatedQuery
+    }
+
     // execute the sql statement
     rows, err := db.Query(sqlStatement, merchantId)
     if err != nil {

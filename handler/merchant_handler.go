@@ -82,8 +82,33 @@ func GetAllMerchant(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     w.Header().Set("Access-Control-Allow-Origin", "*")
 
+    // Pagination
+    var PageNum, PageSize string
+    var intPageNum, intPageSize int
+    var err error
+    PageNum = r.URL.Query().Get("PageNum")
+    PageSize = r.URL.Query().Get("PageSize")
+    intPageNum = 0
+    intPageSize = 0
+
+    if PageNum != "" {
+        intPageNum, err = strconv.Atoi(PageNum)
+        if err != nil {
+           log.Fatalf("Unable to get all teams. %v", err)
+           return
+        }
+    }
+
+    if PageSize != "" {
+        intPageSize, err = strconv.Atoi(PageSize)
+        if err != nil {
+            log.Fatalf("Unable to get all teams. %v", err)
+            return
+        }
+    }
+
     // get all the users in the db
-    merchants, err := db.GetAllMerchants()
+    merchants, err := db.GetAllMerchants(intPageNum, intPageSize)
     if err != nil {
         log.Fatalf("Unable to get all merchants. %v", err)
     }
