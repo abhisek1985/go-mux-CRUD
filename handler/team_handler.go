@@ -131,8 +131,10 @@ func DeleteTeam(w http.ResponseWriter, r *http.Request) {
     deletedRows := db.DeleteMerchant(id)
     var message string
     if deletedRows == 0{
+        w.WriteHeader(http.StatusOK)
         message = fmt.Sprintf("Team deletion unsuccessful. Total rows/record affected %v", deletedRows)
     }else{
+        w.WriteHeader(http.StatusOK)
         message = fmt.Sprintf("Team deletion successful. Total rows/record affected %v", deletedRows)
     }
     // format the response message
@@ -163,6 +165,13 @@ func GetTeamsForMerchant(w http.ResponseWriter, r *http.Request){
     if err != nil {
         log.Fatalf("Unable to get all teams. %v", err)
     }
-    // send all the merchants as response
-    json.NewEncoder(w).Encode(teams)
+    if len(teams) > 0{
+        w.WriteHeader(http.StatusOK)
+        // send all the merchants as response
+        json.NewEncoder(w).Encode(teams)
+    }else{
+        s := make([]string, 0)
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(s)
+    }
 }
