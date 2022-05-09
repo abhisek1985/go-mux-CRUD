@@ -12,6 +12,7 @@ func Router() *mux.Router {
 
     router := mux.NewRouter()
 
+    // APIs for Merchant
     router.HandleFunc("/api/merchant", middlewares.BasicAuthMiddleware(http.HandlerFunc(
     handler.GetAllMerchant))).Methods("GET", "OPTIONS")
 
@@ -26,6 +27,7 @@ func Router() *mux.Router {
     router.HandleFunc("/api/del-merchant/{id}", middlewares.BasicAuthMiddleware(http.HandlerFunc(
     handler.DeleteMerchant))).Methods("DELETE", "OPTIONS")
 
+    // APIs for Team
     router.HandleFunc("/api/team", middlewares.BasicAuthMiddleware(http.HandlerFunc(
     handler.GetAllTeam))).Methods("GET", "OPTIONS")
 
