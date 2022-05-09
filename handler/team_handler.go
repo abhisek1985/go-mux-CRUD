@@ -26,6 +26,16 @@ func CreateTeam(w http.ResponseWriter, r *http.Request) {
     if err != nil {
         log.Fatalf("Unable to decode the request body.  %v", err)
     }
+
+    //Payload validation
+    validErrs := team.ValidateTeam()
+    if len(validErrs) > 0{
+        err := map[string]interface{}{"validationError": validErrs}
+        w.WriteHeader(http.StatusBadRequest)
+        json.NewEncoder(w).Encode(err)
+        return
+    }
+
     // call insert merchant function and pass the merchant
     message := db.InsertTeam(team)
     // format a response object
@@ -49,8 +59,16 @@ func GetAllTeam(w http.ResponseWriter, r *http.Request) {
     if err != nil {
         log.Fatalf("Unable to get all teams. %v", err)
     }
-    // send all the merchants as response
-    json.NewEncoder(w).Encode(teams)
+
+    if len(teams) > 0{
+        w.WriteHeader(http.StatusOK)
+        // send all the teams as response
+        json.NewEncoder(w).Encode(teams)
+    }else{
+        s := make([]string, 0)
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(s)
+    }
 }
 
 
@@ -69,12 +87,12 @@ func GetTeam(w http.ResponseWriter, r *http.Request) {
         log.Fatalf("Unable to convert the string into int.  %v", err)
     }
     // call the GetTeam function with teamID to retrieve a single team
-    user, err := db.GetTeam(id)
+    team, err := db.GetTeam(id)
     if err != nil {
         log.Fatalf("Unable to get team. %v", err)
     }
     // send the response
-    json.NewEncoder(w).Encode(user)
+    json.NewEncoder(w).Encode(team)
 }
 
 
@@ -167,7 +185,7 @@ func GetTeamsForMerchant(w http.ResponseWriter, r *http.Request){
     }
     if len(teams) > 0{
         w.WriteHeader(http.StatusOK)
-        // send all the merchants as response
+        // send all the teams as response
         json.NewEncoder(w).Encode(teams)
     }else{
         s := make([]string, 0)

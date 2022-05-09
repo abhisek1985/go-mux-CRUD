@@ -31,6 +31,16 @@ func CreateMerchant(w http.ResponseWriter, r *http.Request) {
     if err != nil {
         log.Fatalf("Unable to decode the request body.  %v", err)
     }
+
+    //Payload validation
+    validErrs := merchant.ValidateMerchant()
+    if len(validErrs) > 0{
+        err := map[string]interface{}{"validationError": validErrs}
+        w.WriteHeader(http.StatusBadRequest)
+        json.NewEncoder(w).Encode(err)
+        return
+    }
+
     // call insert merchant function and pass the merchant
     message := db.InsertMerchant(merchant)
     // format a response object
@@ -56,12 +66,13 @@ func GetMerchant(w http.ResponseWriter, r *http.Request) {
         log.Fatalf("Unable to convert the string into int.  %v", err)
     }
     // call the getUser function with user id to retrieve a single user
-    user, err := db.GetMerchant(id)
+    merchant, err := db.GetMerchant(id)
     if err != nil {
         log.Fatalf("Unable to get merchant. %v", err)
     }
     // send the response
-    json.NewEncoder(w).Encode(user)
+    json.NewEncoder(w).Encode(merchant)
+
 }
 
 // GetAllMerchant will return all the merchants
@@ -76,8 +87,16 @@ func GetAllMerchant(w http.ResponseWriter, r *http.Request) {
     if err != nil {
         log.Fatalf("Unable to get all merchants. %v", err)
     }
-    // send all the merchants as response
-    json.NewEncoder(w).Encode(merchants)
+
+    if len(merchants) > 0{
+        w.WriteHeader(http.StatusOK)
+        // send all the merchants as response
+        json.NewEncoder(w).Encode(merchants)
+    }else{
+        s := make([]string, 0)
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(s)
+    }
 }
 
 // UpdateMerchant update merchant's detail in the postgres db
