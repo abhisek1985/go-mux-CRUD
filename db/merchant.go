@@ -1,9 +1,7 @@
 package db
 
 import (
-    "fmt"
     "log"
-    "database/sql"
     "github.com/abhisek1985/go-mux-CRUD/models" // models package where DB table schema is defined
 )
 
@@ -12,9 +10,12 @@ import (
 func GetAllMerchants(intPageNum int, intPageSize int) ([]models.Merchant, error) {
     // create the postgres db connection
     db := createDBConnection()
+
     // close the db connection
     defer db.Close()
-    var merchants []models.Merchant
+
+    // Slice of type structure
+    merchants := []models.Merchant{}
 
     // create the select sql query
     sqlStatement := `SELECT * FROM merchant ORDER BY ID DESC`
@@ -33,6 +34,7 @@ func GetAllMerchants(intPageNum int, intPageSize int) ([]models.Merchant, error)
     defer rows.Close()
     // iterate over the rows
     for rows.Next() {
+        // structure variable
         var merchant models.Merchant
         // unmarshal the row object to merchant
         err = rows.Scan(&merchant.ID, &merchant.Code, &merchant.Name)
@@ -48,7 +50,7 @@ func GetAllMerchants(intPageNum int, intPageSize int) ([]models.Merchant, error)
 
 
 // create one merchant in the DB
-func InsertMerchant(merchant models.Merchant) string {
+func InsertMerchant(merchant models.Merchant) (error, int) {
     // create the postgres db connection
     db := createDBConnection()
     // close the db connection
@@ -58,17 +60,14 @@ func InsertMerchant(merchant models.Merchant) string {
     sqlStatement := `INSERT INTO merchant (code, name) VALUES ($1, $2) RETURNING id`
     // the inserted id will store in this id
     var id int
-    var message string
     // execute the sql statement
-    // Scan function will save the insert id in the id
+    // Scan function will save the data and insert id in the id
     err := db.QueryRow(sqlStatement, merchant.Code, merchant.Name).Scan(&id)
     if err != nil {
-        message = fmt.Sprintf("Merchant creation unsuccessful reason %v", err)
+        return err, 0
     }else{
-        fmt.Printf("Inserted a single record %v", id)
-        message = "Merchant created successfully"
+        return nil, id
     }
-    return message
 }
 
 
@@ -86,59 +85,48 @@ func GetMerchant(merchantId int) (models.Merchant, error) {
     row := db.QueryRow(sqlStatement, merchantId)
     // unmarshal the row object to merchant
     err := row.Scan(&merchant.ID, &merchant.Code, &merchant.Name)
-    switch err {
-    case sql.ErrNoRows:
-        fmt.Println("No rows were returned!")
-        return merchant, nil
-    case nil:
-        return merchant, nil
-    default:
-        log.Fatalf("Unable to scan the row. %v", err)
-    }
-    // return empty merchant on error
     return merchant, err
 }
 
 // update one merchant in the DB by its merchantId
-func UpdateMerchant(merchantId int, merchant models.Merchant) int {
+func UpdateMerchant(merchantId int, merchant models.Merchant) (error, int64) {
     // create the postgres db connection
     db := createDBConnection()
     // close the db connection
     defer db.Close()
+
+    var rowsAffected int64 = 0
     // create the update sql query
     sqlStatement := `UPDATE merchant SET code=$2, name=$3 WHERE id=$1;`
     // execute the sql statement
     res, err := db.Exec(sqlStatement, merchantId, merchant.Code, merchant.Name)
-    if err != nil {
-        log.Fatalf("Unable to execute the query. %v", err)
+    if err != nil{
+        return err, rowsAffected
     }
+
     // check how many rows affected
-    rowsAffected, err := res.RowsAffected()
-    if err != nil {
-        log.Fatalf("Error while checking the affected rows. %v", err)
-    }
-    fmt.Printf("Total rows/record affected %v", rowsAffected)
-    return int(rowsAffected)
+    rowsAffected, updateError := res.RowsAffected()
+    return updateError, rowsAffected
 }
 
 // delete merchant from the DB by merchantId
-func DeleteMerchant(merchantId int) int {
+func DeleteMerchant(merchantId int) (error, int64) {
     // create the postgres db connection
     db := createDBConnection()
     // close the db connection
     defer db.Close()
+
     // create the delete sql query
     sqlStatement := `DELETE FROM merchant WHERE id = $1;`
+    var rowsDeleted int64 = 0
+
     // execute the sql statement
     res, err := db.Exec(sqlStatement, merchantId)
     if err != nil {
-        log.Fatalf("Unable to execute the query. %v", err)
+        return err, rowsDeleted
     }
-    // check how many rows affected
-    rowsAffected, err := res.RowsAffected()
-    if err != nil {
-        log.Fatalf("Error while checking the affected rows. %v", err)
-    }
-    fmt.Printf("Total rows/record affected %v", rowsAffected)
-    return int(rowsAffected)
+
+    // check how many rows deleted
+    rowsDeleted, deleteError := res.RowsAffected()
+    return deleteError, rowsDeleted
 }

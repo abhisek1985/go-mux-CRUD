@@ -11,6 +11,11 @@ import (
     "github.com/gorilla/mux" // used to get the params from the route
 )
 
+// response format
+type response struct {
+    ID      int  `json:"id,omitempty"`
+    Message string `json:"message,omitempty"`
+}
 
 // CreateTeam create a team in the postgres db
 func CreateTeam(w http.ResponseWriter, r *http.Request) {
@@ -172,7 +177,7 @@ func DeleteTeam(w http.ResponseWriter, r *http.Request) {
         log.Fatalf("Unable to convert the string into int.  %v", err)
     }
     // call the DeleteMerchant, convert the int to int64
-    deletedRows := db.DeleteMerchant(id)
+    deletedRows := db.DeleteTeam(id)
     var message string
     if deletedRows == 0{
         w.WriteHeader(http.StatusOK)
