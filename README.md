@@ -5,6 +5,7 @@
 - Docker
 - Custom migrations with golang-migrate
 - Basic Authentication
+- Unit testing
 
 ### Requirements:
 * Docker and Docker Compose
