@@ -39,6 +39,8 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 	}
 }
 
+
+// TestEmptyMerchants no merchants
 func TestEmptyMerchants(t *testing.T) {
     ensureMerchantTableExists()
 	clearMerchantTable()

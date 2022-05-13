@@ -25,7 +25,6 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
 // CreateMerchant create a merchant in the postgres db
 func CreateMerchant(w http.ResponseWriter, r *http.Request) {
-
     // create an empty merchant of type models.Merchant
     var merchant models.Merchant
 

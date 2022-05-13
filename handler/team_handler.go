@@ -19,36 +19,35 @@ type response struct {
 
 // CreateTeam create a team in the postgres db
 func CreateTeam(w http.ResponseWriter, r *http.Request) {
-    // set response header content type as application/json
-    // Allow all origin to handle Cross-Origin Resource Sharing (CORS) issue
-    w.Header().Set("Content-Type", "application/json")
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-
     // create an empty team of type models.Team
     var team models.Team
-    // decode the json request to team
-    err := json.NewDecoder(r.Body).Decode(&team)
-    if err != nil {
-        log.Fatalf("Unable to decode the request body.  %v", err)
-    }
 
-    //Payload validation
-    validErrs := team.ValidateTeam()
-    if len(validErrs) > 0{
-        err := map[string]interface{}{"validationError": validErrs}
-        w.WriteHeader(http.StatusBadRequest)
-        json.NewEncoder(w).Encode(err)
+    // decode the json request to merchant
+    decoder := json.NewDecoder(r.Body)
+    err := decoder.Decode(&team)
+
+    if err != nil {
+        respondWithError(w, http.StatusInternalServerError, "Invalid request payload")
         return
     }
 
-    // call insert merchant function and pass the merchant
-    message := db.InsertTeam(team)
-    // format a response object
-    res := response{
-        Message: message,
+    defer r.Body.Close()
+
+    //Payload validation
+    if validErrs := team.ValidateTeam(); len(validErrs) > 0{
+        respondWithJSON(w, http.StatusBadRequest, validErrs)
+        return
     }
-    // send the response
-    json.NewEncoder(w).Encode(res)
+
+    // call insert merchant function and pass the team
+    err, id := db.InsertTeam(team)
+    if err != nil {
+        respondWithError(w, http.StatusInternalServerError, err.Error())
+        return
+    }
+
+    team.ID = id
+    respondWithJSON(w, http.StatusCreated, team)
 }
 
 

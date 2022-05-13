@@ -8,31 +8,6 @@ import (
 )
 
 
-// create one team in the DB
-func InsertTeam(team models.Team) string {
-    // create the postgres db connection
-    db := createDBConnection()
-    // close the db connection
-    defer db.Close()
-    // create the insert sql query
-    // returning id of the inserted team
-    sqlStatement := `INSERT INTO team (email, merchant_id) VALUES ($1, $2) RETURNING id`
-    // the inserted id will store in this id
-    var id int
-    var message string
-    // execute the sql statement
-    // Scan function will save the insert id in the id
-    err := db.QueryRow(sqlStatement, team.Email, team.MerchantID).Scan(&id)
-    if err != nil {
-        message = fmt.Sprintf("Team creation unsuccessful reason %v", err)
-    }else{
-        fmt.Printf("Inserted a single record %v", id)
-        message = "Team created successfully"
-    }
-    return message
-}
-
-
 // get all teams from the DB
 func GetAllTeams(intPageNum int, intPageSize int) ([]models.Team, error) {
     // create the postgres db connection
@@ -71,6 +46,27 @@ func GetAllTeams(intPageNum int, intPageSize int) ([]models.Team, error) {
 
     // return empty team on error
     return teams, err
+}
+
+// create one team in the DB
+func InsertTeam(team models.Team) (error, int) {
+    // create the postgres db connection
+    db := createDBConnection()
+    // close the db connection
+    defer db.Close()
+    // create the insert sql query
+    // returning id of the inserted team
+    sqlStatement := `INSERT INTO team (email, merchant_id) VALUES ($1, $2) RETURNING id`
+    // the inserted id will store in this id
+    var id int
+    // execute the sql statement
+    // Scan function will save the insert id in the id
+    err := db.QueryRow(sqlStatement, team.Email, team.MerchantID).Scan(&id)
+    if err != nil {
+        return err, 0
+    }else{
+        return nil, id
+    }
 }
 
 
