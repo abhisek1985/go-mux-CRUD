@@ -8,6 +8,14 @@ const merchantTableCreationQuery = `CREATE TABLE IF NOT EXISTS merchant
 	CONSTRAINT merchant_code_unique UNIQUE ("code")
 )`
 
+const teamTableCreationQuery = `CREATE TABLE IF NOT EXISTS team
+(
+	id SERIAL PRIMARY KEY,
+	email text NOT NULL,
+	merchant_id INT NULL,
+	CONSTRAINT merchant_code_unique UNIQUE ("code")
+)`
+
 const APP_DB_USERNAME = "postgres"
 const APP_DB_NAME = "postgres"
 const APP_DB_HOST = "database"

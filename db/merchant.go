@@ -1,7 +1,6 @@
 package db
 
 import (
-    "log"
     "github.com/abhisek1985/go-mux-CRUD/models" // models package where DB table schema is defined
 )
 
@@ -27,23 +26,26 @@ func GetAllMerchants(intPageNum int, intPageSize int) ([]models.Merchant, error)
 
     // execute the sql statement
     rows, err := db.Query(sqlStatement)
-    if err != nil {
-        log.Fatalf("Unable to execute the query. %v", err)
+    if err != nil{
+        return merchants, err
     }
-    // close the statement
-    defer rows.Close()
+
     // iterate over the rows
     for rows.Next() {
         // structure variable
         var merchant models.Merchant
         // unmarshal the row object to merchant
-        err = rows.Scan(&merchant.ID, &merchant.Code, &merchant.Name)
+        err := rows.Scan(&merchant.ID, &merchant.Code, &merchant.Name)
         if err != nil {
-            log.Fatalf("Unable to scan the row. %v", err)
+            break
         }
         // append the merchant in the merchants slice
         merchants = append(merchants, merchant)
     }
+
+    // close the statement
+    defer rows.Close()
+
     // return empty merchant on error
     return merchants, err
 }

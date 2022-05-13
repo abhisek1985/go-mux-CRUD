@@ -9,7 +9,7 @@ import (
     "encoding/json"
 )
 
-func ensureTableExists() {
+func ensureMerchantTableExists() {
     db := getDBConnection()
 	if _, err := db.Exec(merchantTableCreationQuery); err != nil {
 		log.Fatal(err)
@@ -18,7 +18,7 @@ func ensureTableExists() {
 }
 
 
-func clearTable() {
+func clearMerchantTable() {
     db := getDBConnection()
     defer db.Close()
 	db.Exec("DELETE FROM merchant")
@@ -40,8 +40,8 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 }
 
 func TestEmptyMerchants(t *testing.T) {
-    ensureTableExists()
-	clearTable()
+    ensureMerchantTableExists()
+	clearMerchantTable()
 	req, _ := http.NewRequest("GET", "/api/merchants", nil)
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
@@ -53,8 +53,8 @@ func TestEmptyMerchants(t *testing.T) {
 
 // TestCreateProduct Create Merchant
 func TestCreateMerchant(t *testing.T) {
-    ensureTableExists()
-	clearTable()
+    ensureMerchantTableExists()
+	clearMerchantTable()
 
 	var jsonStr = []byte(`{"name":"test merchant", "code": "TEST-MER-1234"}`)
 	req, _ := http.NewRequest("POST", "/api/create/merchant", bytes.NewBuffer(jsonStr))
@@ -78,8 +78,8 @@ func TestCreateMerchant(t *testing.T) {
 
 // TestGetNonExistentMerchant Fetch Non Exist Merchant
 func TestGetNonExistentMerchant(t *testing.T) {
-    ensureTableExists()
-	clearTable()
+    ensureMerchantTableExists()
+	clearMerchantTable()
 
 	req, _ := http.NewRequest("GET", "/api/merchant/11", nil)
 	response := executeRequest(req)
@@ -95,8 +95,8 @@ func TestGetNonExistentMerchant(t *testing.T) {
 
 // TestUpdateNonExistentMerchant update Non Exist Merchant
 func TestUpdateNonExistentMerchant(t *testing.T) {
-    ensureTableExists()
-	clearTable()
+    ensureMerchantTableExists()
+	clearMerchantTable()
 
     var jsonStr = []byte(`{"name":"test merchant 11", "code": "TEST-MER-11"}`)
 	req, _ := http.NewRequest("PUT", "/api/update/merchant/11", bytes.NewBuffer(jsonStr))
@@ -113,8 +113,8 @@ func TestUpdateNonExistentMerchant(t *testing.T) {
 
 // TestUpdateNonExistentMerchant update Non Exist Merchant
 func TestDeleteNonExistentMerchant(t *testing.T) {
-    ensureTableExists()
-	clearTable()
+    ensureMerchantTableExists()
+	clearMerchantTable()
 
 	req, _ := http.NewRequest("DELETE", "/api/delete/merchant/11", nil)
 	response := executeRequest(req)

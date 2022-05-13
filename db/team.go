@@ -37,35 +37,38 @@ func InsertTeam(team models.Team) string {
 func GetAllTeams(intPageNum int, intPageSize int) ([]models.Team, error) {
     // create the postgres db connection
     db := createDBConnection()
-    // close the db connection
-    defer db.Close()
-    var teams []models.Team
-    var sqlStatement string
 
-    sqlStatement = `SELECT * FROM team ORDER BY ID DESC`
+    // Slice of type structure
+    teams := []models.Team{}
+
+    // create the select sql query
+    sqlStatement := `SELECT * FROM team ORDER BY ID DESC`
+
     if intPageNum > 0 && intPageSize > 0{
         paginatedQuery := models.PaginateQuery(intPageNum, intPageSize, sqlStatement)
         sqlStatement = paginatedQuery
     }
 
     rows, err := db.Query(sqlStatement)
-
-    if err != nil {
-        log.Fatalf("Unable to execute the query. %v", err)
+    if err != nil{
+       return teams, err
     }
-    // close the statement
-    defer rows.Close()
+
     // iterate over the rows
     for rows.Next() {
         var team models.Team
         // unmarshal the row object to team
-        err = rows.Scan(&team.ID, &team.Email, &team.MerchantID)
+        err := rows.Scan(&team.ID, &team.Email, &team.MerchantID)
         if err != nil {
-            log.Fatalf("Unable to scan the row. %v", err)
+            break
         }
         // append the team in the teams slice
         teams = append(teams, team)
     }
+
+    // close the statement
+    defer rows.Close()
+
     // return empty team on error
     return teams, err
 }

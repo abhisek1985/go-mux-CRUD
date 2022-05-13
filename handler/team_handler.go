@@ -54,11 +54,6 @@ func CreateTeam(w http.ResponseWriter, r *http.Request) {
 
 // GetAllTeam will return all the teams
 func GetAllTeam(w http.ResponseWriter, r *http.Request) {
-    // set response header content type as application/json
-    // Allow all origin to handle Cross-Origin Resource Sharing (CORS) issue
-    w.Header().Set("Content-Type", "application/json")
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-
     var PageNum, PageSize string
     var intPageNum, intPageSize int
     var err error
@@ -72,7 +67,7 @@ func GetAllTeam(w http.ResponseWriter, r *http.Request) {
     if PageNum != "" {
         intPageNum, err = strconv.Atoi(PageNum)
         if err != nil {
-           log.Fatalf("Unable to get all teams. %v", err)
+           respondWithError(w, http.StatusBadRequest, "Invalid PageNum value")
            return
         }
     }
@@ -80,7 +75,7 @@ func GetAllTeam(w http.ResponseWriter, r *http.Request) {
     if PageSize != "" {
         intPageSize, err = strconv.Atoi(PageSize)
         if err != nil {
-            log.Fatalf("Unable to get all teams. %v", err)
+            respondWithError(w, http.StatusBadRequest, "Invalid PageSize value")
             return
         }
     }
@@ -88,18 +83,10 @@ func GetAllTeam(w http.ResponseWriter, r *http.Request) {
     // get all the users in the db
     teams, err := db.GetAllTeams(intPageNum, intPageSize)
     if err != nil {
-        log.Fatalf("Unable to get all teams. %v", err)
+        respondWithError(w, http.StatusInternalServerError, "Unable to fetch teams")
     }
 
-    if len(teams) > 0{
-        w.WriteHeader(http.StatusOK)
-        // send all the teams as response
-        json.NewEncoder(w).Encode(teams)
-    }else{
-        s := make([]string, 0)
-        w.WriteHeader(http.StatusOK)
-        json.NewEncoder(w).Encode(s)
-    }
+    respondWithJSON(w, http.StatusOK, teams)
 }
 
 

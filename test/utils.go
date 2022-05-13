@@ -43,5 +43,7 @@ func getMUXRouter() *mux.Router {
      router.HandleFunc("/api/merchant/{id}", handler.GetMerchant).Methods("GET", "OPTIONS")
      router.HandleFunc("/api/update/merchant/{id}", handler.UpdateMerchant).Methods("PUT", "OPTIONS")
      router.HandleFunc("/api/delete/merchant/{id}", handler.DeleteMerchant).Methods("DELETE", "OPTIONS")
+
+     router.HandleFunc("/api/teams", handler.GetAllTeam).Methods("GET", "OPTIONS")
      return router
 }
